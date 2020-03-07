@@ -7,6 +7,8 @@ import Deliveryman from '../models/Deliveryman';
 import File from '../models/File';
 import Notification from '../schemas/Notification';
 
+import Mail from '../../lib/Mail';
+
 class DeliveryController {
   async index(req, res) {
     const { product, page = 1 } = req.query;
@@ -157,6 +159,12 @@ class DeliveryController {
         city,
         zip_code,
       },
+    });
+
+    await Mail.sendMail({
+      to: `${deliverymanExists.dataValues.name} <${deliverymanExists.dataValues.email}`,
+      subject: 'New delivery available',
+      text: 'You have a new delivery',
     });
 
     return res.json(delivery);
