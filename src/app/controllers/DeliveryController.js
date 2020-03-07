@@ -118,8 +118,6 @@ class DeliveryController {
       where: { id: deliveryman_id },
     });
 
-    console.log(deliverymanExists);
-
     if (!recipientExists) {
       res.status(401).json({ error: 'Recipient does not exists' });
     }
