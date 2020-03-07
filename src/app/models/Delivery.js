@@ -8,6 +8,33 @@ class Delivery extends Model {
         canceled_at: Sequelize.DATE,
         start_date: Sequelize.DATE,
         end_date: Sequelize.DATE,
+        cancelable: {
+          type: Sequelize.VIRTUAL,
+          get() {
+            return this.status !== 'ENTREGUE' && this.status !== 'CANCELADO';
+          },
+        },
+        status: {
+          type: Sequelize.VIRTUAL,
+          get() {
+            let status;
+
+            switch (status) {
+              case this.canceled_at && status:
+                status = 'CANCELADO';
+                break;
+              case this.end_date && status:
+                status = 'ENTREGUE';
+                break;
+              case this.start_date && status:
+                status = 'PENDENTE';
+                break;
+              default:
+                status = 'RETIRAR';
+            }
+            return status;
+          },
+        },
       },
       {
         sequelize,

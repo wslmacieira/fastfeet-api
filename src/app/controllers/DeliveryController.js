@@ -1,4 +1,5 @@
 import * as Yup from 'yup';
+import { Op } from 'sequelize';
 
 import Delivery from '../models/Delivery';
 import Recipient from '../models/Recipient';
@@ -7,17 +8,37 @@ import File from '../models/File';
 
 class DeliveryController {
   async index(req, res) {
+    const { product, page = 1 } = req.query;
+
     const deliveries = await Delivery.findAll({
+      where: {
+        product: {
+          [Op.iLike]: `%${product}%`,
+        },
+      },
       order: [['id', 'desc']],
-      attributes: ['id', 'product', 'start_date', 'end_date', 'canceled_at'],
+      limit: 20,
+      offset: (page - 1) * 20,
+      attributes: [
+        'id',
+        'product',
+        'start_date',
+        'end_date',
+        'canceled_at',
+        'status',
+        'cancelable',
+      ],
       include: [
         {
           model: Recipient,
-          attributes: ['name'],
-        },
-        {
-          model: Deliveryman,
-          attributes: ['name', 'email'],
+          attributes: [
+            'name',
+            'street',
+            'number',
+            'complement',
+            'city',
+            'zip_code',
+          ],
         },
         {
           model: File,
@@ -29,9 +50,57 @@ class DeliveryController {
     return res.json(deliveries);
   }
 
+  async show(req, res) {
+    const { id } = req.params;
+
+    const delivery = await Delivery.findByPk(id, {
+      where: {
+        canceled_at: null,
+      },
+      attributes: [
+        'id',
+        'product',
+        'status',
+        'cancelable',
+        'start_date',
+        'end_date',
+        'canceled_at',
+      ],
+      include: [
+        {
+          model: Recipient,
+          attributes: [
+            'id',
+            'name',
+            'street',
+            'number',
+            'complement',
+            'city',
+            'state',
+            'zip_code',
+          ],
+        },
+        {
+          model: Deliveryman,
+          attributes: ['id', 'name', 'email'],
+          include: [{ model: File, as: 'avatar', attributes: ['path', 'url'] }],
+        },
+        { model: File, as: 'signature', attributes: ['path', 'url'] },
+      ],
+    });
+
+    if (!delivery) {
+      return res.status(400).json({ error: 'Delivery does not exists' });
+    }
+
+    return res.json(delivery);
+  }
+
   async store(req, res) {
     const schema = Yup.object().shape({
       product: Yup.string().required(),
+      recipient_id: Yup.number().required(),
+      deliveryman_id: Yup.number().required(),
     });
 
     if (!(await schema.isValid(req.body))) {
@@ -63,6 +132,8 @@ class DeliveryController {
   async update(req, res) {
     const schema = Yup.object().shape({
       product: Yup.string(),
+      recipient_id: Yup.number(),
+      deliveryman_id: Yup.number(),
     });
 
     if (!(await schema.isValid(req.body))) {
@@ -109,15 +180,21 @@ class DeliveryController {
   async delete(req, res) {
     const { id } = req.params;
 
-    const deliveryExists = await Delivery.findByPk(id);
+    const delivery = await Delivery.findByPk(id);
 
-    if (!deliveryExists) {
+    if (!delivery) {
       return res.status(400).json({ error: 'Delivery does not exists' });
+    }
+
+    if (!delivery.cancelable) {
+      return res
+        .status(400)
+        .json({ error: 'Finalized delivery cannot deleted ' });
     }
 
     await Delivery.destroy({ where: { id } });
 
-    return res.json();
+    return res.json({ message: 'Deleted successfull' });
   }
 }
 
