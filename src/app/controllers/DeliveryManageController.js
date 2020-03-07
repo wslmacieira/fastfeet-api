@@ -3,7 +3,7 @@ import Deliveryman from '../models/Deliveryman';
 import Recipient from '../models/Recipient';
 import File from '../models/File';
 
-class DeliveryManagementController {
+class DeliveryManageController {
   async index(req, res) {
     const { id } = req.params;
 
@@ -94,4 +94,4 @@ class DeliveryManagementController {
   }
 }
 
-export default new DeliveryManagementController();
+export default new DeliveryManageController();
