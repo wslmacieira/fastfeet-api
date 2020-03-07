@@ -10,6 +10,7 @@ import FileController from './app/controllers/FileController';
 import DeliveryController from './app/controllers/DeliveryController';
 import DeliveryManageController from './app/controllers/DeliveryManageController';
 import DeliverymanManageController from './app/controllers/DeliverymanManageController';
+import NotificationController from './app/controllers/NotificationController';
 
 import authMiddleware from './app/middlewares/auth';
 
@@ -58,5 +59,8 @@ routes.put('/deliveries/:id', DeliveryController.update);
 routes.delete('/deliveries/:id', DeliveryController.delete);
 
 routes.post('/files', upload.single('file'), FileController.store);
+
+routes.get('/notifications', NotificationController.index);
+routes.put('/notifications/:id', NotificationController.update);
 
 export default routes;

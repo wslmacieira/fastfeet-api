@@ -5,6 +5,7 @@ import Delivery from '../models/Delivery';
 import Recipient from '../models/Recipient';
 import Deliveryman from '../models/Deliveryman';
 import File from '../models/File';
+import Notification from '../schemas/Notification';
 
 class DeliveryController {
   async index(req, res) {
@@ -112,9 +113,12 @@ class DeliveryController {
     const recipientExists = await Recipient.findOne({
       where: { id: recipient_id },
     });
+
     const deliverymanExists = await Deliveryman.findOne({
       where: { id: deliveryman_id },
     });
+
+    console.log(deliverymanExists);
 
     if (!recipientExists) {
       res.status(401).json({ error: 'Recipient does not exists' });
@@ -125,6 +129,37 @@ class DeliveryController {
     }
 
     const delivery = await Delivery.create(req.body);
+
+    // console.log(delivery.dataValues.product);
+
+    /**
+     * Notify delivey deliveryman
+     */
+    const {
+      street,
+      number,
+      complement,
+      state,
+      city,
+      zip_code,
+    } = recipientExists.dataValues;
+
+    const { name, email } = recipientExists.dataValues;
+
+    await Notification.create({
+      content: 'New delivery',
+      deliveryman: deliveryman_id,
+      product: delivery.dataValues.product,
+      recipient: { name, email },
+      address: {
+        street,
+        number,
+        complement,
+        state,
+        city,
+        zip_code,
+      },
+    });
 
     return res.json(delivery);
   }
