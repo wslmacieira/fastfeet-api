@@ -73,11 +73,11 @@ class DeliverymanManageController {
 
     const checkWithdrawal = available.find(a => a.value === start_date);
 
-    // if (!checkWithdrawal) {
-    //   return res
-    //     .status(400)
-    //     .json({ error: 'Out of hours withdrawal is not allowed' });
-    // }
+    if (!checkWithdrawal) {
+      return res
+        .status(400)
+        .json({ error: 'Out of hours withdrawal is not allowed' });
+    }
 
     const deliveryman = await Delivery.findOne({
       where: {
