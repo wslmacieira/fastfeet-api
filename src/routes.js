@@ -11,6 +11,7 @@ import DeliveryController from './app/controllers/DeliveryController';
 import DeliveryManageController from './app/controllers/DeliveryManageController';
 import DeliverymanManageController from './app/controllers/DeliverymanManageController';
 import NotificationController from './app/controllers/NotificationController';
+import DeliveryProblemController from './app/controllers/DeliveryProblemController';
 
 import authMiddleware from './app/middlewares/auth';
 
@@ -35,6 +36,8 @@ routes.put(
   '/deliveryman/:id/manage/deliveries/:delivery_id',
   DeliverymanManageController.update
 );
+
+routes.post('/delivery/:id/problems', DeliveryProblemController.store);
 
 // routes Admin
 routes.use(authMiddleware);
@@ -62,5 +65,9 @@ routes.post('/files', upload.single('file'), FileController.store);
 
 routes.get('/notifications', NotificationController.index);
 routes.put('/notifications/:id', NotificationController.update);
+
+routes.get('/delivery/problems', DeliveryProblemController.index);
+routes.get('/delivery/:id/problems', DeliveryProblemController.show);
+routes.delete('/delivery/:id/problems', DeliveryProblemController.delete);
 
 export default routes;
