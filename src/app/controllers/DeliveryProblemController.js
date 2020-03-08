@@ -4,7 +4,8 @@ import Deliveryman from '../models/Deliveryman';
 import Recipient from '../models/Recipient';
 import Notification from '../schemas/Notification';
 
-import Mail from '../../lib/Mail';
+import CancellationMail from '../jobs/CancellationMail';
+import Queue from '../../lib/Queue';
 
 class DeliveryProblemController {
   async index(req, res) {
@@ -43,9 +44,14 @@ class DeliveryProblemController {
     const { deliveryman, recipient, product } = delivery.dataValues;
     const { street, number, complement, state, city, zip_code } = recipient;
 
+    /**
+     * Notify problems admin
+     */
+
     await Notification.create({
       content: 'Delivery problems',
       deliveryman: deliveryman.id,
+      description,
       product,
       recipient: recipient.name,
       address: {
@@ -97,6 +103,10 @@ class DeliveryProblemController {
     const { deliveryman, recipient, product } = delivery.dataValues;
     const { street, number, complement, state, city, zip_code } = recipient;
 
+    /**
+     * Notify cancelation admin
+     */
+
     await Notification.create({
       content: 'Delivery canceled',
       deliveryman: deliveryman.id,
@@ -112,20 +122,13 @@ class DeliveryProblemController {
       },
     });
 
-    await Mail.sendMail({
-      to: `${deliveryman.name} <${deliveryman.email}>`,
-      subject: 'canceled delivery',
-      template: 'cancellation',
-      context: {
-        deliveryman: deliveryman.name,
-        recipient: recipient.name,
-        address: `${recipient.street}, N° ${recipient.number}
-        ${recipient.complement || ''}, ${recipient.city} - ${recipient.state}`,
-        product,
-      },
-    });
-
     await delivery.save();
+
+    await Queue.add(CancellationMail.key, {
+      deliveryman,
+      recipient,
+      product,
+    });
 
     return res.json({ msg: 'Canceled successful.' });
   }

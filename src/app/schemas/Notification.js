@@ -8,18 +8,22 @@ const NotificationSchema = new mongoose.Schema(
     },
     deliveryman: {
       type: String,
-      required: false,
+      required: true,
     },
     product: {
       type: String,
-      required: false,
+      required: true,
     },
     recipient: {
       type: String,
-      required: false,
+      required: true,
     },
     address: {
       type: Object,
+      required: true,
+    },
+    description: {
+      type: String,
       required: false,
     },
     read: {

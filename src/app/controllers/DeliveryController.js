@@ -7,7 +7,8 @@ import Deliveryman from '../models/Deliveryman';
 import File from '../models/File';
 import Notification from '../schemas/Notification';
 
-import Mail from '../../lib/Mail';
+import DeliveryMail from '../jobs/DeliveryMail';
+import Queue from '../../lib/Queue';
 
 class DeliveryController {
   async index(req, res) {
@@ -112,47 +113,35 @@ class DeliveryController {
 
     const { recipient_id, deliveryman_id } = req.body;
 
-    const recipientExists = await Recipient.findOne({
+    const recipient = await Recipient.findOne({
       where: { id: recipient_id },
     });
 
-    const deliverymanExists = await Deliveryman.findOne({
-      where: { id: deliveryman_id },
-    });
-
-    if (!recipientExists) {
+    if (!recipient) {
       res.status(401).json({ error: 'Recipient does not exists' });
     }
 
-    if (!deliverymanExists) {
+    const deliveryman = await Deliveryman.findOne({
+      where: { id: deliveryman_id },
+    });
+
+    if (!deliveryman) {
       res.status(401).json({ error: 'Deliveryman does not exists' });
     }
 
     const delivery = await Delivery.create(req.body);
 
     /**
-     * Notify delivey deliveryman
+     * Notify delivery admin
      */
-    const {
-      name,
-      street,
-      number,
-      complement,
-      state,
-      city,
-      zip_code,
-    } = recipientExists.dataValues;
 
-    const {
-      name: deliverymanName,
-      email: deliverymanEmail,
-    } = deliverymanExists.dataValues;
+    const { street, number, complement, state, city, zip_code } = recipient;
 
     await Notification.create({
       content: 'New delivery',
       deliveryman: deliveryman_id,
-      product: delivery.dataValues.product,
-      recipient: name,
+      product: delivery.product,
+      recipient: recipient.name,
       address: {
         street,
         number,
@@ -163,17 +152,10 @@ class DeliveryController {
       },
     });
 
-    await Mail.sendMail({
-      to: `${deliverymanName} <${deliverymanEmail}`,
-      subject: 'New delivery available',
-      template: 'delivery',
-      context: {
-        deliveryman: deliverymanName,
-        recipient: name,
-        address: `${street}, N° ${number} ${complement ||
-          ''}, ${city} - ${state}`,
-        product: delivery.product,
-      },
+    await Queue.add(DeliveryMail.key, {
+      deliveryman,
+      recipient,
+      delivery,
     });
 
     return res.json(delivery);
