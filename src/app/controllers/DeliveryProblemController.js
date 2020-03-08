@@ -2,6 +2,7 @@ import Delivery from '../models/Delivery';
 import DeliveryProblem from '../models/DeliveryProblem';
 import Deliveryman from '../models/Deliveryman';
 import Recipient from '../models/Recipient';
+import Notification from '../schemas/Notification';
 
 import Mail from '../../lib/Mail';
 
@@ -24,6 +25,10 @@ class DeliveryProblemController {
         canceled_at: null,
         end_date: null,
       },
+      include: [
+        { model: Deliveryman, as: 'deliveryman' },
+        { model: Recipient, as: 'recipient' },
+      ],
     });
 
     if (!delivery) {
@@ -33,6 +38,24 @@ class DeliveryProblemController {
     const problem = await DeliveryProblem.create({
       delivery_id: id,
       description,
+    });
+
+    const { deliveryman, recipient, product } = delivery.dataValues;
+    const { street, number, complement, state, city, zip_code } = recipient;
+
+    await Notification.create({
+      content: 'Delivery problems',
+      deliveryman: deliveryman.id,
+      product,
+      recipient: recipient.name,
+      address: {
+        street,
+        number,
+        complement,
+        state,
+        city,
+        zip_code,
+      },
     });
 
     return res.json(problem);
@@ -72,6 +95,22 @@ class DeliveryProblemController {
     delivery.canceled_at = new Date();
 
     const { deliveryman, recipient, product } = delivery.dataValues;
+    const { street, number, complement, state, city, zip_code } = recipient;
+
+    await Notification.create({
+      content: 'Delivery canceled',
+      deliveryman: deliveryman.id,
+      product,
+      recipient: recipient.name,
+      address: {
+        street,
+        number,
+        complement,
+        state,
+        city,
+        zip_code,
+      },
+    });
 
     await Mail.sendMail({
       to: `${deliveryman.name} <${deliveryman.email}>`,
