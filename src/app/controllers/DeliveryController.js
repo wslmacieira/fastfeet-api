@@ -130,12 +130,11 @@ class DeliveryController {
 
     const delivery = await Delivery.create(req.body);
 
-    // console.log(delivery.dataValues.product);
-
     /**
      * Notify delivey deliveryman
      */
     const {
+      name,
       street,
       number,
       complement,
@@ -144,13 +143,16 @@ class DeliveryController {
       zip_code,
     } = recipientExists.dataValues;
 
-    const { name, email } = recipientExists.dataValues;
+    const {
+      name: deliverymanName,
+      email: deliverymanEmail,
+    } = deliverymanExists.dataValues;
 
     await Notification.create({
       content: 'New delivery',
       deliveryman: deliveryman_id,
       product: delivery.dataValues.product,
-      recipient: { name, email },
+      recipient: name,
       address: {
         street,
         number,
@@ -162,13 +164,14 @@ class DeliveryController {
     });
 
     await Mail.sendMail({
-      to: `${deliverymanExists.dataValues.name} <${deliverymanExists.dataValues.email}`,
+      to: `${deliverymanName} <${deliverymanEmail}`,
       subject: 'New delivery available',
       template: 'delivery',
       context: {
-        deliveryman: deliverymanExists.dataValues.name,
-        product: delivery.product,
+        deliveryman: deliverymanName,
         recipient: name,
+        address: `${street}, N° ${number}, ${city} - ${state}`,
+        product: delivery.product,
       },
     });
 

@@ -7,20 +7,20 @@ const NotificationSchema = new mongoose.Schema(
       required: true,
     },
     deliveryman: {
-      type: Number,
-      required: true,
+      type: String,
+      required: false,
     },
     product: {
       type: String,
-      required: true,
+      required: false,
     },
     recipient: {
-      type: Object,
-      required: true,
+      type: String,
+      required: false,
     },
     address: {
       type: Object,
-      required: true,
+      required: false,
     },
     read: {
       type: Boolean,
