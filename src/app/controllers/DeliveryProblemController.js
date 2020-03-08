@@ -43,6 +43,10 @@ class DeliveryProblemController {
 
     const problem = await DeliveryProblem.findByPk(id);
 
+    if (!problem) {
+      return res.status(400).json({ error: 'Problem does not exists' });
+    }
+
     const delivery = await Delivery.findByPk(problem.delivery_id, {
       where: {
         id,
@@ -76,7 +80,8 @@ class DeliveryProblemController {
       context: {
         deliveryman: deliveryman.name,
         recipient: recipient.name,
-        address: `${recipient.street}, N° ${recipient.number}, ${recipient.city} - ${recipient.state}`,
+        address: `${recipient.street}, N° ${recipient.number}
+        ${recipient.complement || ''}, ${recipient.city} - ${recipient.state}`,
         product,
       },
     });

@@ -170,7 +170,8 @@ class DeliveryController {
       context: {
         deliveryman: deliverymanName,
         recipient: name,
-        address: `${street}, N° ${number}, ${city} - ${state}`,
+        address: `${street}, N° ${number} ${complement ||
+          ''}, ${city} - ${state}`,
         product: delivery.product,
       },
     });
