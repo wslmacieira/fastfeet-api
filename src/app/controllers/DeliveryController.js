@@ -14,7 +14,7 @@ class DeliveryController {
   async index(req, res) {
     const { product, page = 1 } = req.query;
 
-    const deliveries = await Delivery.findAll({
+    const deliveries = await Delivery.finddAll({
       where: {
         product: {
           [Op.iLike]: `%${product}%`,
