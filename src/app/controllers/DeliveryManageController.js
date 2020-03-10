@@ -1,3 +1,4 @@
+import { Op } from 'sequelize';
 import Delivery from '../models/Delivery';
 import Deliveryman from '../models/Deliveryman';
 import Recipient from '../models/Recipient';
@@ -6,6 +7,7 @@ import File from '../models/File';
 class DeliveryManageController {
   async index(req, res) {
     const { id } = req.params;
+    const { product, page = 1 } = req.query;
 
     const deliverymanExists = await Deliveryman.findByPk(id);
 
@@ -18,6 +20,9 @@ class DeliveryManageController {
         deliveryman_id: id,
         canceled_at: null,
         end_date: null,
+        product: {
+          [Op.iLike]: `%${product}%`,
+        },
       },
       attributes: [
         'id',
@@ -27,9 +32,13 @@ class DeliveryManageController {
         'end_date',
         'canceled_at',
       ],
+      order: [['id', 'desc']],
+      limit: 20,
+      offset: (page - 1) * 20,
       include: [
         {
           model: Recipient,
+          as: 'recipient',
           attributes: [
             'id',
             'name',
@@ -72,6 +81,7 @@ class DeliveryManageController {
       include: [
         {
           model: Recipient,
+          as: 'recipient',
           attributes: [
             'id',
             'name',

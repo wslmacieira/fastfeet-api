@@ -9,11 +9,81 @@ import Queue from '../../lib/Queue';
 
 class DeliveryProblemController {
   async index(req, res) {
-    return res.json({ ok: true });
+    const { page = 1 } = req.query;
+    const deliveryProblems = await DeliveryProblem.findAll({
+      attributes: ['id', 'description'],
+      order: [['id', 'desc']],
+      limit: 20,
+      offset: (page - 1) * 20,
+      include: [
+        {
+          model: Delivery,
+          attributes: ['id', 'product'],
+          include: [
+            {
+              model: Deliveryman,
+              as: 'deliveryman',
+              attributes: ['name', 'email'],
+            },
+            {
+              model: Recipient,
+              as: 'recipient',
+              attributes: [
+                'name',
+                'email',
+                'street',
+                'number',
+                'complement',
+                'city',
+                'state',
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    return res.json(deliveryProblems);
   }
 
   async show(req, res) {
-    return res.json({ ok: true });
+    const { id } = req.params;
+
+    const deliveryProblems = await DeliveryProblem.findAll({
+      where: {
+        delivery_id: id,
+      },
+      attributes: ['id', 'description'],
+      order: [['id', 'desc']],
+      include: [
+        {
+          model: Delivery,
+          attributes: ['id', 'product'],
+          include: [
+            {
+              model: Deliveryman,
+              as: 'deliveryman',
+              attributes: ['name', 'email'],
+            },
+            {
+              model: Recipient,
+              as: 'recipient',
+              attributes: [
+                'name',
+                'email',
+                'street',
+                'number',
+                'complement',
+                'city',
+                'state',
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    return res.json(deliveryProblems);
   }
 
   async store(req, res) {
@@ -130,7 +200,7 @@ class DeliveryProblemController {
       product,
     });
 
-    return res.json({ msg: 'Canceled successful.' });
+    return res.json({ msg: 'Canceled successful' });
   }
 }
 

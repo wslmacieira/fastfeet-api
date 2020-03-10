@@ -14,7 +14,7 @@ class DeliveryController {
   async index(req, res) {
     const { product, page = 1 } = req.query;
 
-    const deliveries = await Delivery.finddAll({
+    const deliveries = await Delivery.findAll({
       where: {
         product: {
           [Op.iLike]: `%${product}%`,
@@ -35,6 +35,7 @@ class DeliveryController {
       include: [
         {
           model: Recipient,
+          as: 'recipient',
           attributes: [
             'name',
             'street',
@@ -73,6 +74,7 @@ class DeliveryController {
       include: [
         {
           model: Recipient,
+          as: 'recipient',
           attributes: [
             'id',
             'name',
@@ -86,6 +88,7 @@ class DeliveryController {
         },
         {
           model: Deliveryman,
+          as: 'deliveryman',
           attributes: ['id', 'name', 'email'],
           include: [{ model: File, as: 'avatar', attributes: ['path', 'url'] }],
         },
@@ -200,12 +203,10 @@ class DeliveryController {
     const { product } = await deliveryExists.update(req.body);
 
     return res.json({
-      order: {
-        id,
-        product,
-        recipient_id,
-        deliveryman_id,
-      },
+      id,
+      product,
+      recipient_id,
+      deliveryman_id,
     });
   }
 

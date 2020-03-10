@@ -50,7 +50,7 @@ class DeliverymanController {
 
   async store(req, res) {
     const schema = Yup.object().shape({
-      name: Yup.string().required('Name is required'),
+      name: Yup.string().required(),
       email: Yup.string()
         .email()
         .required(),
@@ -118,7 +118,7 @@ class DeliverymanController {
 
     await Deliveryman.destroy({ where: { id } });
 
-    return res.json({ message: 'Success' });
+    return res.json({ message: 'Deleted successful' });
   }
 }
 
